@@ -8,9 +8,7 @@ import SwiftUI
 @propertyWrapper
 public struct Cache<Value: Cacheable>:
 	SerializedCache & CacheWrapper
-where Value.ID == String,
-			Value.AutoDecoder.Input == Data,
-			Value.AutoEncoder.Output == Data {
+where Value.ID: CustomStringConvertible {
 	public var wrappedValue: [Value] {
 		get {
 			do {

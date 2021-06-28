@@ -61,11 +61,12 @@ extension Light: ColorCodable {
 	}
 }
 
-#if canImport(SwiftUI)
-	import SwiftUI
+/*
+//#if canImport(SwiftUI)
+import struct SwiftUI.Color
 
-	@available(macOS 10.15, *, iOS 13.0, *)
 	public extension Light {
+		@available(iOS 14.0, *)
 		var token: Color {
 			Color(
 				red: Double(redComponent),
@@ -75,4 +76,5 @@ extension Light: ColorCodable {
 			)
 		}
 	}
-#endif
+//#endif
+*/

@@ -1,6 +1,5 @@
 import Combine
 
-@available(macOS 10.15, iOS 13.0, *)
 public extension TopLevelDecoder {
   func decode<T>(
     _ type: T.Type,
@@ -10,7 +9,6 @@ public extension TopLevelDecoder {
   }
 }
 
-@available(macOS 10.15, iOS 13.0, *)
 public extension TopLevelEncoder {
   func encode<T>(
     set: [T]

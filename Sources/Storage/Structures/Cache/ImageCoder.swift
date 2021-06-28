@@ -46,14 +46,18 @@ import Combine
           )
         )
       }
-
+		
+			var dictionary: [String: Any] = [
+					"id": object.id,
+					"image": data.base64EncodedString(),
+					"timestamp": object.timestamp.timeIntervalSinceReferenceDate
+			]
+			if let orientation = object.orientation {
+				dictionary["orientation"] = orientation.rawValue
+			}
       return
 				try JSONSerialization.data(
-					withJSONObject: [
-						"id": object.id,
-						"image": data.base64EncodedString(),
-						"timestamp": object.timestamp.timeIntervalSinceReferenceDate
-					], options: .empty
+					withJSONObject: dictionary, options: .empty
 				)
 
     }

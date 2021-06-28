@@ -6,10 +6,7 @@ public typealias Cacheable = Identifiable & AutoCodable
 
 @available(macOS 10.15, iOS 13.0, *)
 public protocol SerializedCache: BaseCache
-where Value: Cacheable,
-			Value.ID == String,
-			Value.AutoDecoder.Input == Data,
-			Value.AutoEncoder.Output == Data {
+where Value: Cacheable, Value.ID: CustomStringConvertible {
 	static subscript(_: Value.ID) -> Value? { get set }
 }
 
@@ -18,7 +15,7 @@ public extension SerializedCache {
 	/// An automatically determined location for `Value`
 	/// to be stored based on `UUID`.
 	static func fileURL(_ id: Value.ID) throws -> URL {
-		try folder().appendingPathComponent(id)
+		try folder().appendingPathComponent(id.description)
 	}
 
 	func exists(_ id: Value.ID) throws -> Bool {
@@ -44,7 +41,7 @@ public extension SerializedCache {
 		let dir = try folder(createIfNeeded: true)
 		try contents.forEach { value in
 			let url =
-				dir.appendingPathComponent(value.id)
+				dir.appendingPathComponent(value.id.description)
 			if !fileExists(url) {
 				let data = try Value.encoder.encode(value)
 				try data.write(to: url)
@@ -60,7 +57,7 @@ public extension SerializedCache {
 			if let commonIndex =
 				directory.firstIndex(
 					where:
-						{ $0.lastPathComponent == value.id }
+						{ $0.lastPathComponent == value.id.description }
 				) {
 				directory.remove(at: commonIndex)
 			} else {
@@ -76,12 +73,12 @@ public extension SerializedCache {
 }
 
 @available(macOS 10.15, iOS 13.0, *)
-public extension SerializedCache where Value: SerializedImage {
+public extension SerializedCache where Value: CacheExpirable {
 	 static func trim() throws {
 		guard let timeInterval = Value.expiration else { return }
-		let expirationDate = Date() + timeInterval
 		for object in try Self.objects()
-		where object.timestamp.compare(expirationDate) == .orderedDescending {
+		where (object.timestamp + timeInterval)
+			.compare(.init()) == .orderedAscending {
 			Self[object.id] = nil
 		}
 	}

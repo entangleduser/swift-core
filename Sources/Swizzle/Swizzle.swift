@@ -1,3 +1,5 @@
+import SwiftUI
+
 infix operator <->
 infix operator <~>
 
@@ -36,8 +38,7 @@ public extension String {
 }
 
 public struct Swizzle {
-	@_functionBuilder
-  //@resultBuilder
+  @resultBuilder
   public enum Builder {
     public static func buildBlock(
       _ swizzlePairs: SwizzlePair...
@@ -136,10 +137,7 @@ extension Swizzle {
     }
   }
 }
-
-#if canImport(SwiftUI)
-  import SwiftUI
-
+/*
   @available(macOS 11.0, iOS 13.0, *)
   public extension View {
     @ViewBuilder func swizzle<T>(
@@ -182,4 +180,4 @@ extension Swizzle {
       }
     }
   }
-#endif
+*/

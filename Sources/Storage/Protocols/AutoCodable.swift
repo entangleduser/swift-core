@@ -1,8 +1,11 @@
 import Combine
-
+import Foundation
 /// An object that conforms to `AutoDecodable` & `AutoEncodable`.
-@available(macOS 10.15, iOS 13.0, *)
-public typealias AutoCodable = AutoDecodable & AutoEncodable
+public protocol AutoCodable: AutoDecodable & AutoEncodable
+where AutoDecoder.Input == Data, AutoDecoder.Input == AutoEncoder.Output {
+	static var decoder: AutoDecoder { get }
+	static var encoder: AutoEncoder { get }
+}
 
 /// An object with a static, top level decoder.
 @available(macOS 10.15, iOS 13.0, *)
@@ -21,8 +24,9 @@ public protocol AutoEncodable: Codable {
 }
 
 @available(macOS 10.15, iOS 13.0, *)
-extension AutoEncodable {
-  public func encoded() throws -> AutoEncoder.Output {
+public extension AutoEncodable {
+	func encoded() throws -> AutoEncoder.Output {
     try Self.encoder.encode(self)
   }
+	var data: AutoEncoder.Output? { try? encoded() }
 }

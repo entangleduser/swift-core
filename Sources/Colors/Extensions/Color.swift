@@ -1,5 +1,5 @@
 #if os(iOS)
-	import UIKit
+	import SwiftUI
 #elseif os(macOS)
 	import AppKit
 #endif
@@ -95,10 +95,7 @@ public extension NativeColor {
 		]
 	}
 }
-
-#if canImport(SwiftUI)
-	import SwiftUI
-
+/*
 	@available(macOS 10.15, *, iOS 13.0, *)
 	public extension Color {
 		init(_ light: Light) {
@@ -111,4 +108,4 @@ public extension NativeColor {
 			)
 		}
 	}
-#endif
+*/

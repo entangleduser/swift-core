@@ -1,7 +1,7 @@
 import protocol Core.Infallible
 
 public protocol SettingsKey: Hashable, CustomStringConvertible {
-  associatedtype Value: Hashable
+  associatedtype Value
   static var defaultValue: Value { get }
   init()
 }

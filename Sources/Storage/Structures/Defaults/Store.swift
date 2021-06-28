@@ -2,22 +2,17 @@ import protocol Core.Infallible
 import SwiftUI
 
 /// A `UserDefaults` wrapper for object that conform to `AutoCodable`.
-@available(macOS 10.15, iOS 13.0, *)
 @propertyWrapper
-public struct Store<Value: AutoCodable>: DefaultsWrapper
-	where Value.AutoDecoder.Input == Data, Value.AutoEncoder.Output == Data {
+public struct Store<Value: AutoCodable & Infallible>: DefaultsWrapper {
 	public var store: UserDefaults = .standard
 	public let key: String
-
-	public var wrappedValue: Value? {
+	public let defaultValue: Value?
+	public var wrappedValue: Value {
 		get {
 			do {
-				guard let data =
-					store.object(forKey: key) as? Data
-				else {
-					return nil
+				guard let data = store.data(forKey: key) else {
+					return defaultValue.unwrapped
 				}
-
 				return try Value.decoder.decode(Value.self, from: data)
 			} catch {
 				debugPrint(
@@ -26,7 +21,7 @@ public struct Store<Value: AutoCodable>: DefaultsWrapper
 					)
 				)
 			}
-			return nil
+			return defaultValue.unwrapped
 		}
 		nonmutating set {
 			do {
@@ -41,27 +36,22 @@ public struct Store<Value: AutoCodable>: DefaultsWrapper
 		}
 	}
 
-	public var projectedValue: Binding<Value?> {
-		Binding<Value?>(
+	public var projectedValue: Binding<Value> {
+		Binding<Value>(
 			get: { self.wrappedValue },
 			set: { self.wrappedValue = $0 }
 		)
 	}
 
 	public init(
-		wrappedValue: Value? = nil,
-		_ key: String, store: UserDefaults? = nil
+		wrappedValue: Value? = .none,
+		_ key: String,
+		store: UserDefaults? = nil
 	) {
-		self.key = key
 		if let store = store { self.store = store }
-		if self.store.object(forKey: key) == nil {
-			self.wrappedValue = wrappedValue
-		}
-		//        if let store = store { self.store = store }
-		//        guard self.store.object(forKey: key) == nil else { return }
-		//        self.wrappedValue = wrappedValue
+		self.key = key
+		self.defaultValue = wrappedValue
 	}
-
 	public func update() {}
 }
 
