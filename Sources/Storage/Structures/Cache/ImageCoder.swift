@@ -122,7 +122,7 @@ import Combine
 #endif
 
 #if os(iOS)
-extension UIImage {
+public extension UIImage {
 	func compressImageOnlength(maxLength: Int) -> Data? {
 		let maxL = maxLength * 1024 * 1024
 		var compress:CGFloat = 0.9
