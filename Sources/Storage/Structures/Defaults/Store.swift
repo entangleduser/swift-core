@@ -86,15 +86,17 @@ extension Store {
 	}
 }
 
+
 @available(macOS 10.15, iOS 13.0, *)
 extension Store: AutoCodable {
 	public init(from decoder: Decoder) throws {
-		try self.init(from: decoder)
+		fatalError()
+		/*try self.init(from: decoder)
 		if let data =
 			store.data(forKey: key) {
 			wrappedValue =
 				try Self.decoder.decode(Value.self, from: data)
-		}
+		}*/
 	}
 
 	public func encode(to encoder: Encoder) throws {
@@ -105,3 +107,4 @@ extension Store: AutoCodable {
 	public static var decoder: Value.AutoDecoder { Value.decoder }
 	public static var encoder: Value.AutoEncoder { Value.encoder }
 }
+
