@@ -37,13 +37,12 @@
 				),
 				let orientation = UIImage.Orientation(rawValue: intValue) {
 				self.orientation = orientation
-//				guard let cgImage = image.cgImage else { return }
-//				self.image =
-//					UIImage(cgImage: cgImage, scale: image.scale, orientation: orientation)
-//			} else {
-//				self.image = image
+				guard let cgImage = image.cgImage else { return }
+				self.image =
+					UIImage(cgImage: cgImage, scale: image.scale, orientation: orientation)
+			} else {
+				self.image = image
 			}
-			self.image = image
 
 			timestamp =
 				Date(
@@ -66,13 +65,14 @@
 		) {
 			self.init()
 			self.id = id
-			self.image = image
-//			if let orientation = orientation {
+			if let orientation = orientation {
 				self.orientation = orientation
-//				guard let image = self.image, let cgImage = image.cgImage else { return }
-//				self.image =
-//					UIImage(cgImage: cgImage, scale: image.scale, orientation: orientation)
-//			}
+				guard let image = self.image, let cgImage = image.cgImage else { return }
+				self.image =
+					UIImage(cgImage: cgImage, scale: image.scale, orientation: orientation)
+			} else {
+				self.image = image
+			}
 			self.timestamp = timestamp
 		}
 	}

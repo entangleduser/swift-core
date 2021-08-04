@@ -75,7 +75,8 @@ import Combine
         /// JPEG format.
         /// - parameter compressionQuality: 0 to 1,
         ///  with zero being the highest level of compression.
-        jpeg(_ compressionQuality: CGFloat)
+        jpeg(_ compressionQuality: CGFloat),
+				length(_ length: Int)
     }
 
     #if os(iOS)
@@ -90,6 +91,10 @@ import Combine
           guard let data =
             image.jpegData(compressionQuality: quality) else { break }
           return data
+				case let .length(maxX):
+					guard let data =
+									image.compressImageOnlength(maxLength: maxX) else { break }
+					return data
         }
         return nil
       }
@@ -108,9 +113,26 @@ import Combine
               compressionQuality: quality
             ) else { break }
           return data
+				default: break
         }
         return nil
       }
     #endif
   }
+#endif
+
+#if os(iOS)
+extension UIImage {
+	func compressImageOnlength(maxLength: Int) -> Data? {
+		let maxL = maxLength * 1024 * 1024
+		var compress:CGFloat = 0.9
+		let maxCompress:CGFloat = 0.1
+		var imageData = self.jpegData(compressionQuality: compress)
+		while (imageData?.count)! > maxL && compress > maxCompress {
+			compress -= 0.1
+			imageData = self.jpegData(compressionQuality: compress)
+		}
+		return imageData
+	}
+}
 #endif
