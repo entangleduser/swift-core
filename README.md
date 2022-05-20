@@ -1,10 +1,3 @@
 # Core
-```swift
-/// A package used to eliminate boilerplate code.
-struct Core: Library {
-/// 
-struct Colors: Package {
-
-}
-}
-```
+A package used to eliminate boilerplate code.
+Note: Views framework only supports iOS
