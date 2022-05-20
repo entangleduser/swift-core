@@ -1,84 +1,80 @@
 #if os(iOS)
-	import UIKit
-
-	// TODO: Add timestamp/id based invalidation
-	/// A class for cached images that can be used with `Cache` after
-	///  conforming to `CacheExpirable`.
-	public protocol SerializedImage: CacheExpirable {
-		var id: String { get set }
-		var image: UIImage? { get set }
-		var orientation: UIImage.Orientation? { get set }
-		init()
-	}
-
-	public extension SerializedImage {
-		init(from decoder: Decoder) throws {
-			self.init()
-			let container =
-				try decoder.container(keyedBy: SerializedImageKey.self)
-			let data =
-				try container.decode(Data.self, forKey: .image)
-			guard
-				let image = UIImage(data: data)
-			else {
-				throw DecodingError.dataCorrupted(
-					.init(
-						codingPath: container.codingPath,
-						debugDescription: "Data couldn't be read for image."
-					)
-				)
-			}
-
-			id = try container.decode(String.self, forKey: .id)
-			if let intValue =
-				try container.decodeIfPresent(
-					Int.self,
-					forKey: .orientation
-				),
-				let orientation = UIImage.Orientation(rawValue: intValue) {
-				self.orientation = orientation
-				guard let cgImage = image.cgImage else { return }
-				self.image =
-					UIImage(cgImage: cgImage, scale: image.scale, orientation: orientation)
-			} else {
-				self.image = image
-			}
-
-			timestamp =
-				Date(
-					timeIntervalSinceReferenceDate:
-					try container.decode(
-						TimeInterval.self,
-						forKey: .timestamp
-					)
-				)
-		}
-
-		func encode(to _: Encoder) throws {}
-		static var encoder: ImageEncoder { ImageEncoder.shared }
-		static var decoder: ImageDecoder { ImageDecoder.shared }
-		init(
-			id: String = UUID().uuidString,
-			_ image: UIImage? = .none,
-			_ orientation: UIImage.Orientation? = .none,
-			_ timestamp: Date = .init()
-		) {
-			self.init()
-			self.id = id
-			if let orientation = orientation {
-				self.orientation = orientation
-				guard let image = self.image, let cgImage = image.cgImage else { return }
-				self.image =
-					UIImage(cgImage: cgImage, scale: image.scale, orientation: orientation)
-			} else {
-				self.image = image
-			}
-			self.timestamp = timestamp
-		}
-	}
-
-	/// Coding key for encoding / decoding a `SerializedImage`
-	enum SerializedImageKey: CodingKey {
-		case id, image, orientation, timestamp
-	}
+ import UIKit
+ public typealias NativeImage = UIImage
+#elseif os(macOS)
+ import AppKit
+ public typealias NativeImage = NSImage
 #endif
+
+/// A protocol for cached images that can be used with `Cache` after conforming
+/// to `CacheExpirable`.
+public protocol SerializedImage: CacheExpirable {
+ var imageData: Data? { get set }
+ var timestamp: Date? { get set }
+ static var encodingStrategy: ImageEncoder.EncodingStrategy { get }
+ init()
+}
+
+public extension SerializedImage {
+ static var expiration: TimeInterval? {
+  231_600
+  // 1.8144e+06 // 3 week
+  //15_552_000 // 180 days
+ }
+
+ static var encodingStrategy: ImageEncoder.EncodingStrategy { .none }
+ static var encoder: ImageEncoder { ImageEncoder.shared }
+ static var decoder: ImageDecoder { ImageDecoder.shared }
+ var image: NativeImage? {
+  guard let data = imageData else { return nil }
+  return NativeImage(data: data)
+ }
+
+ func encode(to encoder: Encoder) throws {
+  var container = encoder.container(keyedBy: SerializedImageKey.self)
+  try container.encode(imageData?.base64EncodedString(), forKey: .data)
+  try container.encode(
+   timestamp?.timeIntervalSinceReferenceDate,
+   forKey: .timestamp
+  )
+ }
+
+ init(from decoder: Decoder) throws {
+  self.init()
+  let container = try decoder.container(keyedBy: SerializedImageKey.self)
+  imageData = try container.decode(Data.self, forKey: .data)
+  if let interval =
+   try container.decodeIfPresent(Double.self, forKey: .timestamp) {
+   timestamp = Date(timeIntervalSinceReferenceDate: interval)
+  }
+ }
+
+ init(
+  _ image: NativeImage? = .none,
+  _ timestamp: Date? = .none,
+  strategy: ImageEncoder.EncodingStrategy
+ ) {
+  self.init()
+  guard let image = image,
+        let data = ImageEncoder.encode(image: image, using: strategy)
+  else { return }
+  imageData = data
+  self.timestamp = timestamp
+ }
+
+ init(
+  _ image: NativeImage? = .none,
+  _ timestamp: Date? = .none
+ ) {
+  self.init()
+  guard let image = image, let data = image.pngData()
+  else { return }
+  imageData = data
+  self.timestamp = timestamp
+ }
+}
+
+/// Coding key for encoding / decoding a `SerializedImage`
+enum SerializedImageKey: CodingKey {
+ case data, timestamp
+}

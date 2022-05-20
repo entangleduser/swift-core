@@ -1,144 +1,76 @@
+import Combine
 import SwiftUI
 
 @available(macOS 10.15, iOS 13.0, *)
 @propertyWrapper
 @dynamicMemberLookup
-public struct Setting<Key>: SettingsWrapper where Key: SettingsKey {
-	let path: KeyPath<Settings, Key>
-	public let settings: Settings
+public struct Setting<Value>: DynamicProperty where Value: Equatable {
+ /// Optional key path to remove without referencing settings.
+ /// Extensions to this must be non-optional to be unwrapped automatically.
+ /// - Note:`Bool` values can be optional because in `Defaults``Bool` values are
+ ///  `nil` or `true` by default. Other standard values must be non-optional to
+ ///  be referenced. The goal is to set and remove values without unwrapping.
+ unowned let keyPath: ReferenceWritableKeyPath<Settings, Value?>
+ unowned let settings: Settings
 
-	public var wrappedValue: Key.Value {
-		get { self[dynamicMember: path] }
-		nonmutating set {
-			settings.update {
-				self[dynamicMember: path] = newValue
-			}
-		}
-	}
+ public var lastValue: Value!
+ public var wrappedValue: Value {
+  get { self[dynamicMember: keyPath] }
+  nonmutating set {
+   guard newValue != lastValue else { return }
+   self[dynamicMember: keyPath] = newValue
+  }
+ }
 
-	public var projectedValue: Binding<Key.Value> {
-		Binding<Key.Value>(
-			get: { self.wrappedValue },
-			set: { newValue in self.wrappedValue = newValue }
-		)
-	}
+ public var projectedValue: Binding<Value> {
+  Binding<Value>(
+   get: { wrappedValue },
+   set: { wrappedValue = $0 }
+  )
+ }
 
-	public subscript(
-		dynamicMember keyPath: KeyPath<Settings, Key>
-	) -> Key.Value {
-		get { self[settings[keyPath: keyPath]] }
-		nonmutating set { self[settings[keyPath: keyPath]] = newValue }
-	}
+ public subscript(
+  dynamicMember keyPath: ReferenceWritableKeyPath<Settings, Value?>
+ ) -> Value {
+  get {
+   guard let value = settings[keyPath: keyPath] else {
+    fatalError(
+     """
+     Couldn't retrieve the value from user defaults. Try subscripting as \
+     `[codable:]` or `[codableArray:]` and comforming values to `AutoCodable`.
+     """
+    )
+   }
+   return value
+  }
+  nonmutating set { settings[keyPath: keyPath] = newValue }
+ }
 
-	public init(
-		wrappedValue _: Key.Value = Key.defaultValue,
-		_ path: KeyPath<Settings, Key>,
-		settings: Settings = .shared
-	) where Key: SettingsKey {
-		self.path = path
-		self.settings = settings
-	}
-}
+ public mutating func update() {
+  guard lastValue != wrappedValue else { return }
+  self.lastValue = wrappedValue
+ }
 
-public extension Setting {
-	@propertyWrapper
-	@dynamicMemberLookup
-	struct Codable: SettingsWrapper where Key.Value: AutoCodable {
-		let path: KeyPath<Settings, Key>
-		public var settings: Settings = .shared
+ public func remove() {
+  settings.remove(keyPath)
+ }
 
-		public var wrappedValue: Key.Value {
-			get { self[dynamicMember: path] }
-			nonmutating set {
-				settings.update {
-					self[dynamicMember: path] = newValue
-				}
-			}
-		}
-
-		public var projectedValue: Binding<Key.Value> {
-			Binding<Key.Value>(
-				get: { self.wrappedValue },
-				set: { newValue in self.wrappedValue = newValue }
-			)
-		}
-
-		public subscript(
-			dynamicMember keyPath: KeyPath<Settings, Key>
-		) -> Key.Value {
-			get { self[settings[keyPath: keyPath]] }
-			nonmutating set { self[settings[keyPath: keyPath]] = newValue }
-		}
-
-		public init(
-			wrappedValue _: Key.Value = Key.defaultValue,
-			_ path: KeyPath<Settings, Key>,
-			settings: Settings = .shared
-		) where Key: SettingsKey {
-			self.path = path
-			self.settings = settings
-		}
-
-		@propertyWrapper
-		@dynamicMemberLookup
-		public struct Set: SettingsWrapper where Key.Value: AutoCodable {
-			public var settings: Settings = .shared
-			let path: KeyPath<Settings, Key>
-			let defaultValue: [Key.Value]
-			public var wrappedValue: [Key.Value] {
-				get {
-					if
-						!defaultValue.isEmpty,
-						settings.defaults.object(forKey: Key().description) == nil {
-						self[settings[keyPath: path]] = defaultValue
-						return defaultValue
-					}
-					return self[dynamicMember: path]
-				}
-				nonmutating set {
-					settings.update {
-						self[dynamicMember: path] = newValue
-					}
-				}
-			}
-
-			public var projectedValue: Binding<[Key.Value]> {
-				Binding<[Key.Value]>(
-					get: { self.wrappedValue },
-					set: { newValue in self.wrappedValue = newValue }
-				)
-			}
-
-			public subscript(
-				dynamicMember keyPath: KeyPath<Settings, Key>
-			) -> [Key.Value] {
-				get { self[settings[keyPath: keyPath]] }
-				nonmutating set { self[settings[keyPath: keyPath]] = newValue }
-			}
-
-			public init(
-				wrappedValue: [Key.Value] = .empty,
-				_ path: KeyPath<Settings, Key>,
-				settings: Settings = .shared
-			) where Key: SettingsKey {
-				self.settings = settings
-				self.path = path
-				self.defaultValue = wrappedValue
-			}
-		}
-	}
-}
-
-public extension Setting.Codable {
-	subscript(_ key: Key) -> Key.Value {
-		get { settings.getCodable(for: key) }
-		nonmutating set { settings.setCodable(newValue, for: key) }
-	}
-}
-
-public extension Setting.Codable.Set {
-	subscript(_ key: Key) -> [Key.Value] {
-		get { settings.getCodableArray(for: key) }
-		nonmutating set { settings.setCodableArray(newValue, for: key) }
-	}
+ public init(
+  _ keyPath: ReferenceWritableKeyPath<Settings, Value?>,
+  settings: Settings = .default
+ ) {
+  self.keyPath = keyPath
+  self.settings = settings
+  self.lastValue = wrappedValue
+ }
+// public init(
+//  wrappedValue: Value,
+//  _ keyPath: ReferenceWritableKeyPath<Settings, Value?>,
+//  settings: Settings = .default
+// ) {
+//  if settings[keyPath: keyPath] == nil {
+//   settings[keyPath: keyPath] = wrappedValue
+//  }
+//  self.init(keyPath, settings: settings)
+// }
 }

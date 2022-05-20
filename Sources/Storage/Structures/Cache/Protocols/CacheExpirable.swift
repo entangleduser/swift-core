@@ -1,6 +1,9 @@
 import Foundation
 
 public protocol CacheExpirable {
-	var timestamp: Date { get set }
-	static var expiration: TimeInterval? { get }
+ static var expiration: TimeInterval? { get }
+}
+
+public extension CacheExpirable {
+ static var expiration: TimeInterval? { 15_552_000 } // 180 days
 }
