@@ -1,6 +1,5 @@
 import SwiftUI
 import Core
-import Views
 
 infix operator <->
 infix operator <~>
