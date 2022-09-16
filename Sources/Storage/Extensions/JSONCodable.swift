@@ -41,9 +41,6 @@ public extension JSONDecodable {
  }
 }
 
-
-extension Dictionary: Changeable {}
-
 public protocol PlistCodable: PlistEncodable & PlistDecodable & AutoCodable {}
 public protocol PlistDecodable: AutoDecodable {}
 public protocol PlistEncodable: AutoEncodable {}

@@ -5,7 +5,7 @@ import Reflection
 
 /// An object that conforms to `AutoDecodable` & `AutoEncodable`.
 public protocol AutoCodable:
- AutoDecodable & AutoEncodable & Changeable
+ AutoDecodable & AutoEncodable
 where AutoDecoder.Input == Data, AutoDecoder.Input == AutoEncoder.Output {
  static var decoder: AutoDecoder { get }
  static var encoder: AutoEncoder { get }
@@ -45,19 +45,6 @@ extension Optional: AutoEncodable where Wrapped: AutoEncodable {
 extension Optional: AutoDecodable where Wrapped: AutoDecodable {
  public static var decoder: Wrapped.AutoDecoder {
   Wrapped.decoder
- }
-}
-
-extension Optional: Changeable where Wrapped: AutoCodable {
- @discardableResult
- public func change(_ handler: @escaping (inout Self) -> ()) -> Self { @discardableResult
-  func change(_ handler: @escaping (inout Self) -> ()) -> Self {
-   var changing = self
-   handler(&changing)
-   return changing
-  }
-
-  fatalError("Value must be unwrapped before mutating!")
  }
 }
 
