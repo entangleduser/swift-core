@@ -3,7 +3,7 @@ import SwiftUI
 
 /// A wrapper for `UserDefaults`
 @propertyWrapper
-public struct Storage<Value>: DefaultsWrapper {
+public struct Defaults<Value>: DefaultsWrapper {
  public var store: UserDefaults = .standard
  public let key: String
  public var wrappedValue: Value? {

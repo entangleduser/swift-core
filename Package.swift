@@ -7,11 +7,11 @@ let package = Package(
  products: [
   .library(name: "Core", targets: ["Core"]),
   .library(name: "Colors", targets: ["Colors"]),
-  .library(name: "Storage", targets: ["Storage"]),
+  .library(name: "CoreStorage", targets: ["CoreStorage"]),
   .library(name: "Structures", targets: ["Structures"]),
   .library(name: "Swizzle", targets: ["Swizzle"]),
   .library(name: "Reflection", targets: ["Reflection"]),
-  .library(name: "ViewModules", targets: ["ViewModules"])
+  .library(name: "CoreViews", targets: ["CoreViews"])
  ],
  dependencies: [
   .package(url: "https://github.com/apple/swift-collections", branch: "main"),
@@ -30,7 +30,7 @@ let package = Package(
    dependencies: ["Core"]
   ),
   .target(
-   name: "Storage",
+   name: "CoreStorage",
    dependencies: ["Core", "Reflection"]
   ),
   .target(
@@ -49,12 +49,12 @@ let package = Package(
    dependencies: ["Core"]
   ),
   .target(
-   name: "ViewModules",
+   name: "CoreViews",
    dependencies: [
     "Core",
     "Structures",
     "Colors",
-    "Storage",
+    "CoreStorage",
     .product(name: "Introspect", package: "swiftui-introspect")
    ],
    resources: [
@@ -66,8 +66,8 @@ let package = Package(
    dependencies: ["Core"]
   ),
   .testTarget(
-   name: "StorageTests",
-   dependencies: ["Storage"]
+   name: "CoreStorageTests",
+   dependencies: ["CoreStorage"]
   ),
   .testTarget(
    name: "StructuresTests",

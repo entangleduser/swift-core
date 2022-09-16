@@ -1,26 +1,26 @@
 import SwiftUI
 
-public extension Storage {
+public extension Defaults {
  @propertyWrapper
  struct Set: DefaultsWrapper {
   public var store: UserDefaults = .standard
   public let key: String
 
-  public var wrappedValue: [Storage.Value] {
-   get { store.array(forKey: key) as? [Storage.Value] ?? [] }
+  public var wrappedValue: [Defaults.Value] {
+   get { store.array(forKey: key) as? [Defaults.Value] ?? [] }
    nonmutating set { store.set(newValue, forKey: key) }
   }
 
   @available(macOS 10.15, iOS 13.0, *)
-  public var projectedValue: Binding<[Storage.Value]> {
-   Binding<[Storage.Value]>(
+  public var projectedValue: Binding<[Defaults.Value]> {
+   Binding<[Defaults.Value]>(
     get: { self.wrappedValue },
     set: { self.wrappedValue = $0 }
    )
   }
 
   public init(
-   wrappedValue: [Storage.Value] = [],
+   wrappedValue: [Defaults.Value] = [],
    _ key: String, store: UserDefaults? = nil
   ) {
    self.key = key
