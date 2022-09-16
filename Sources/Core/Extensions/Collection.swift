@@ -3,6 +3,7 @@ import Foundation
 
 // MARK: Transforming
 public extension Collection {
+ #if canImport(Dispatch)
  @inlinable
  @_disfavoredOverload func parallelMap<R>(
   _ transform: @escaping (Element) throws -> R
@@ -131,6 +132,7 @@ public extension Collection {
    } catch { debugPrint(error.localizedDescription) }
   }
  }
+ #endif
 }
 
 // MARK: Indexing
