@@ -11,7 +11,7 @@ let package = Package(
   .library(name: "Structures", targets: ["Structures"]),
   .library(name: "Swizzle", targets: ["Swizzle"]),
   .library(name: "Reflection", targets: ["Reflection"]),
-  .library(name: "Views", targets: ["Views"])
+  .library(name: "ViewModules", targets: ["ViewModules"])
  ],
  dependencies: [
   .package(url: "https://github.com/apple/swift-collections", branch: "main"),
@@ -49,7 +49,7 @@ let package = Package(
    dependencies: ["Core"]
   ),
   .target(
-   name: "Views",
+   name: "ViewModules",
    dependencies: [
     "Core",
     "Structures",
